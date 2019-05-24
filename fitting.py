@@ -6,7 +6,7 @@ import scipy.optimize
 def targetFunction(x,Rmin,Rmax):
     #everything in microns
     if(x<Rmin):
-        return(0.0)
+        return(8.0)
     elif(x>Rmax):
         return(0.0)
     else:
@@ -48,20 +48,26 @@ def calculateSpectrum(fileNames,Rmin,Rmax,plot=True):
 
     A = np.array(vacancies)
     A = np.transpose(A)
-    print(np.shape(A))
-    #print(tempVacancies)
-    #print(tempDepths)
-    B = [] #three-step function
+    #print(np.shape(A))
+    B = [] #sampling fitting function
 
     for x in depths[0]:
         B.append(targetFunction(x,Rmin,Rmax))
 
     B = np.array(B)
-    print(np.shape(B))
+    #print(np.shape(B))
 
     fitResults = scipy.optimize.nnls(A, B)
-    spectrum = fitResults[0]
-    print(spectrum)
+    spectrum = np.array(fitResults[0])
+    norm= np.linalg.norm(spectrum, ord=1)
+    if norm==0.:
+        print("Norm is zero!")
+
+    print('Calculated spectrum\n')
+    for i,fileName in enumerate(fileNames):
+        energyString = fileName.replace("VACANCY_","").replace(".txt","")
+        weight       = spectrum[i]/norm
+        print(energyString+" --- ",weight)
 
     if(plot):
         y_fit = np.matmul(A,spectrum)
@@ -72,8 +78,10 @@ def calculateSpectrum(fileNames,Rmin,Rmax,plot=True):
 
 
 
-fileNames = ['VACANCY_3.3MeV.txt','VACANCY_3.7MeV.txt','VACANCY_4.5MeV.txt','VACANCY_4.7MeV.txt','VACANCY_4MeV.txt','VACANCY_5.3MeV.txt','VACANCY_5.6MeV.txt','VACANCY_5.9MeV.txt','VACANCY_5MeV.txt','VACANCY_6.1MeV.txt']
-
+fileNames = ['VACANCY_3.3MeV.txt','VACANCY_3.7MeV.txt','VACANCY_4.1MeV.txt','VACANCY_4.5MeV.txt','VACANCY_4.9MeV.txt','VACANCY_5.2MeV.txt','VACANCY_5.6MeV.txt',
+'VACANCY_3.4MeV.txt','VACANCY_3.8MeV.txt','VACANCY_4.2MeV.txt','VACANCY_4.6MeV.txt','VACANCY_5.3MeV.txt','VACANCY_5.7MeV.txt','VACANCY_6.0MeV.txt',
+'VACANCY_3.5MeV.txt','VACANCY_3.9MeV.txt','VACANCY_4.3MeV.txt','VACANCY_4.7MeV.txt','VACANCY_5.0MeV.txt','VACANCY_5.4MeV.txt','VACANCY_5.8MeV.txt','VACANCY_6.1MeV.txt',
+'VACANCY_3.6MeV.txt','VACANCY_4.0MeV.txt','VACANCY_4.4MeV.txt','VACANCY_4.8MeV.txt','VACANCY_5.1MeV.txt','VACANCY_5.5MeV.txt','VACANCY_5.9MeV.txt']
 Rmin            = 100. #microns
 Rmax            = 300.
 calculateSpectrum(fileNames,Rmin,Rmax,plot=True)
